@@ -139,8 +139,8 @@ class ReqresUsersBlockTest extends UnitTestCase {
     $config = $this->block->defaultConfiguration();
     $this->assertEquals(6, $config['items_per_page']);
     $this->assertNotEmpty($config['email_label']);
-    $this->assertNotEmpty($config['forename_label']);
-    $this->assertNotEmpty($config['surname_label']);
+    $this->assertNotEmpty($config['first_name_label']);
+    $this->assertNotEmpty($config['last_name_label']);
   }
 
   /**
@@ -156,8 +156,8 @@ class ReqresUsersBlockTest extends UnitTestCase {
 
     $this->assertArrayHasKey('items_per_page', $form);
     $this->assertArrayHasKey('email_label', $form);
-    $this->assertArrayHasKey('forename_label', $form);
-    $this->assertArrayHasKey('surname_label', $form);
+    $this->assertArrayHasKey('first_name_label', $form);
+    $this->assertArrayHasKey('last_name_label', $form);
   }
 
   /**
@@ -171,8 +171,8 @@ class ReqresUsersBlockTest extends UnitTestCase {
     $form_state->setValues([
       'items_per_page' => 3,
       'email_label' => 'Test Email',
-      'forename_label' => 'Test First Name',
-      'surname_label' => 'Test Last Name',
+      'first_name_label' => 'Test First Name',
+      'last_name_label' => 'Test Last Name',
     ]);
 
     $this->block->blockSubmit($form, $form_state);
@@ -180,8 +180,8 @@ class ReqresUsersBlockTest extends UnitTestCase {
 
     $this->assertEquals(3, $config['items_per_page']);
     $this->assertEquals('Test Email', $config['email_label']);
-    $this->assertEquals('Test First Name', $config['forename_label']);
-    $this->assertEquals('Test Last Name', $config['surname_label']);
+    $this->assertEquals('Test First Name', $config['first_name_label']);
+    $this->assertEquals('Test Last Name', $config['last_name_label']);
   }
 
   /**
@@ -221,8 +221,8 @@ class ReqresUsersBlockTest extends UnitTestCase {
     $configuration = [
       'items_per_page' => 6,
       'email_label' => 'Test Email',
-      'forename_label' => 'Test First Name',
-      'surname_label' => 'Test Last Name',
+      'first_name_label' => 'Test First Name',
+      'last_name_label' => 'Test Last Name',
     ];
     $this->block->setConfiguration($configuration);
 

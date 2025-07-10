@@ -91,8 +91,8 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
     return [
       'items_per_page' => 6,
       'email_label' => $this->t('Email'),
-      'forename_label' => $this->t('First Name'),
-      'surname_label' => $this->t('Last Name'),
+      'first_name_label' => $this->t('First Name'),
+      'last_name_label' => $this->t('Last Name'),
       'cache_max_age' => 3600,
       'endpoint_url' => 'https://reqres.in/api',
       'timeout' => 30,
@@ -234,19 +234,19 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
       '#required' => TRUE,
     ];
     
-    $form['display']['forename_label'] = [
+    $form['display']['first_name_label'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Forename field label'),
+      '#title' => $this->t('First name field label'),
       '#description' => $this->t('Label for the first name column in the users table. Default: "First Name".'),
-      '#default_value' => $config['forename_label'],
+      '#default_value' => $config['first_name_label'],
       '#required' => TRUE,
     ];
     
-    $form['display']['surname_label'] = [
+    $form['display']['last_name_label'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Surname field label'),
+      '#title' => $this->t('Last name field label'),
       '#description' => $this->t('Label for the last name column in the users table. Default: "Last Name".'),
-      '#default_value' => $config['surname_label'],
+      '#default_value' => $config['last_name_label'],
       '#required' => TRUE,
     ];
     
@@ -272,8 +272,8 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
     // Save all settings to block configuration
     $this->configuration['items_per_page'] = $values['pagination']['items_per_page'];
     $this->configuration['email_label'] = $values['display']['email_label'];
-    $this->configuration['forename_label'] = $values['display']['forename_label'];
-    $this->configuration['surname_label'] = $values['display']['surname_label'];
+    $this->configuration['first_name_label'] = $values['display']['first_name_label'];
+    $this->configuration['last_name_label'] = $values['display']['last_name_label'];
     $this->configuration['cache_max_age'] = $values['display']['cache_max_age'];
     $this->configuration['endpoint_url'] = $values['api']['endpoint_url'];
     $this->configuration['timeout'] = $values['api']['timeout'];
@@ -327,8 +327,8 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
       '#theme' => 'table',
       '#header' => [
         $config['email_label'],
-        $config['forename_label'],
-        $config['surname_label'],
+        $config['first_name_label'],
+        $config['last_name_label'],
       ],
       '#rows' => [],
       '#empty' => $this->t('No users found.'),

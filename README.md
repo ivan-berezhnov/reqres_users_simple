@@ -30,8 +30,8 @@ A Drupal module that provides integration with multiple user API sources using S
 3. Configure the block:
    - Number of items per page
    - Email field label
-   - Forename field label
-   - Surname field label
+   - First name field label
+   - Last name field label
 4. Save the block
 
 ### Multi-API Demo

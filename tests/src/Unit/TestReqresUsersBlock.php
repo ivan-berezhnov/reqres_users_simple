@@ -81,8 +81,8 @@ class TestReqresUsersBlock extends BlockBase implements ContainerFactoryPluginIn
     return [
       'items_per_page' => 6,
       'email_label' => 'Email',
-      'forename_label' => 'First Name',
-      'surname_label' => 'Last Name',
+      'first_name_label' => 'First Name',
+      'last_name_label' => 'Last Name',
     ];
   }
 
@@ -109,17 +109,17 @@ class TestReqresUsersBlock extends BlockBase implements ContainerFactoryPluginIn
       '#required' => TRUE,
     ];
 
-    $form['forename_label'] = [
+    $form['first_name_label'] = [
       '#type' => 'textfield',
-      '#title' => 'Forename field label',
-      '#default_value' => $config['forename_label'],
+      '#title' => 'First name field label',
+      '#default_value' => $config['first_name_label'],
       '#required' => TRUE,
     ];
 
-    $form['surname_label'] = [
+    $form['last_name_label'] = [
       '#type' => 'textfield',
-      '#title' => 'Surname field label',
-      '#default_value' => $config['surname_label'],
+      '#title' => 'Last name field label',
+      '#default_value' => $config['last_name_label'],
       '#required' => TRUE,
     ];
 
@@ -134,8 +134,8 @@ class TestReqresUsersBlock extends BlockBase implements ContainerFactoryPluginIn
     $values = $form_state->getValues();
     $this->configuration['items_per_page'] = $values['items_per_page'];
     $this->configuration['email_label'] = $values['email_label'];
-    $this->configuration['forename_label'] = $values['forename_label'];
-    $this->configuration['surname_label'] = $values['surname_label'];
+    $this->configuration['first_name_label'] = $values['first_name_label'];
+    $this->configuration['last_name_label'] = $values['last_name_label'];
   }
 
   /**
@@ -165,8 +165,8 @@ class TestReqresUsersBlock extends BlockBase implements ContainerFactoryPluginIn
       '#theme' => 'table',
       '#header' => [
         $config['email_label'],
-        $config['forename_label'],
-        $config['surname_label'],
+        $config['first_name_label'],
+        $config['last_name_label'],
       ],
       '#rows' => [],
       '#empty' => 'No users found.',
