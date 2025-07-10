@@ -1,5 +1,0 @@
-services:
-  reqres_users_filter_example.event_subscriber:
-    class: Drupal\reqres_users_filter_example\EventSubscriber\UserFilterSubscriber
-    tags:
-      - { name: event_subscriber }
