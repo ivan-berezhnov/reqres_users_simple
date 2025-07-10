@@ -76,7 +76,7 @@ class UserProviderManager {
    * @return array
    *   An array of filtered users.
    */
-  public function getFilteredUsers(int $page = 1, int $per_page = 6): array {
+  public function getFilteredUsers(int $page = 1, int $per_page = 6, array $settings = []): array {
     $empty_result = [
       'data' => [],
       'page' => $page,
@@ -86,7 +86,7 @@ class UserProviderManager {
     ];
     
     try {
-      $users = $this->compositeProvider->getUsers($page, $per_page);
+      $users = $this->compositeProvider->getUsers($page, $per_page, $settings);
       
       if (empty($users)) {
         return $empty_result;
@@ -112,8 +112,8 @@ class UserProviderManager {
         'data' => $event->getUsers(),
         'page' => $metadata['page'] ?? $page,
         'per_page' => $metadata['per_page'] ?? $per_page,
-        'total' => $metadata['total'] ?? $this->compositeProvider->getTotalUsers(),
-        'total_pages' => $metadata['total_pages'] ?? $this->compositeProvider->getTotalPages($per_page),
+        'total' => $metadata['total'] ?? $this->compositeProvider->getTotalUsers($settings),
+        'total_pages' => $metadata['total_pages'] ?? $this->compositeProvider->getTotalPages($per_page, $settings),
       ];
       
       return $data;
@@ -134,9 +134,9 @@ class UserProviderManager {
    * @return int
    *   The total number of pages.
    */
-  public function getTotalPages(int $per_page = 6): int {
+  public function getTotalPages(int $per_page = 6, array $settings = []): int {
     try {
-      return $this->compositeProvider->getTotalPages($per_page);
+      return $this->compositeProvider->getTotalPages($per_page, $settings);
     }
     catch (\Exception $e) {
       $this->logger->error('Error in getTotalPages: @message', ['@message' => $e->getMessage(), 'exception' => $e]);
@@ -150,9 +150,9 @@ class UserProviderManager {
    * @return int
    *   The total number of users.
    */
-  public function getTotalUsers(): int {
+  public function getTotalUsers(array $settings = []): int {
     try {
-      return $this->compositeProvider->getTotalUsers();
+      return $this->compositeProvider->getTotalUsers($settings);
     }
     catch (\Exception $e) {
       $this->logger->error('Error in getTotalUsers: @message', ['@message' => $e->getMessage(), 'exception' => $e]);

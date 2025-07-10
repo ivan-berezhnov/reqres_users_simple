@@ -61,12 +61,12 @@ class CompositeUserProvider implements UserProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getUsers(int $page = 1, int $per_page = 6): array {
+  public function getUsers(int $page = 1, int $per_page = 6, array $settings = []): array {
     $users = [];
     
     foreach ($this->providers as $provider) {
       try {
-        $provider_users = $provider->getUsers($page, $per_page);
+        $provider_users = $provider->getUsers($page, $per_page, $settings);
         $users = array_merge($users, $provider_users);
       }
       catch (\Exception $e) {
@@ -88,12 +88,12 @@ class CompositeUserProvider implements UserProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTotalPages(int $per_page = 6): int {
+  public function getTotalPages(int $per_page = 6, array $settings = []): int {
     $max_pages = 0;
     
     foreach ($this->providers as $provider) {
       try {
-        $pages = $provider->getTotalPages($per_page);
+        $pages = $provider->getTotalPages($per_page, $settings);
         $max_pages = max($max_pages, $pages);
       }
       catch (\Exception $e) {
@@ -110,12 +110,12 @@ class CompositeUserProvider implements UserProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTotalUsers(): int {
+  public function getTotalUsers(array $settings = []): int {
     $total = 0;
     
     foreach ($this->providers as $provider) {
       try {
-        $total += $provider->getTotalUsers();
+        $total += $provider->getTotalUsers($settings);
       }
       catch (\Exception $e) {
         $this->logger->error('Error fetching total users from provider @provider: @message', [

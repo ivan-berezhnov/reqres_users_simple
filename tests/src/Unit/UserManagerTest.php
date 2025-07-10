@@ -3,7 +3,7 @@
 namespace Drupal\Tests\reqres_users_simple\Unit;
 
 use Drupal\reqres_users_simple\Event\UserFilterEvent;
-use Drupal\reqres_users_simple\Service\ReqresApiClient;
+use Drupal\reqres_users_simple\ApiClient\ReqresApiClient;
 use Drupal\reqres_users_simple\Service\UserManager;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -20,7 +20,7 @@ class UserManagerTest extends UnitTestCase {
   /**
    * The Reqres API client.
    *
-   * @var \Drupal\reqres_users_simple\Service\ReqresApiClient|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Drupal\reqres_users_simple\ApiClient\ReqresApiClient|\Prophecy\Prophecy\ObjectProphecy
    */
   protected $apiClient;
 
@@ -113,7 +113,7 @@ class UserManagerTest extends UnitTestCase {
       ],
     ];
 
-    $this->apiClient->getUsers(1, 6)->willReturn($mock_data);
+    $this->apiClient->getUsers(1, 6, Argument::any())->willReturn($mock_data);
 
     $this->eventDispatcher->dispatch(
       Argument::that(function ($event) use ($mock_users, $filtered_users) {
@@ -150,7 +150,7 @@ class UserManagerTest extends UnitTestCase {
       'data' => [],
     ];
 
-    $this->apiClient->getUsers(1, 6)->willReturn($mock_data);
+    $this->apiClient->getUsers(1, 6, Argument::any())->willReturn($mock_data);
     $this->eventDispatcher->dispatch(Argument::cetera())->shouldNotBeCalled();
 
     $result = $this->userManager->getFilteredUsers(1, 6);
@@ -163,7 +163,7 @@ class UserManagerTest extends UnitTestCase {
    * @covers ::getFilteredUsers
    */
   public function testGetFilteredUsersWithEmptyResponse() {
-    $this->apiClient->getUsers(1, 6)->willReturn([]);
+    $this->apiClient->getUsers(1, 6, Argument::any())->willReturn([]);
 
     $expected = [
       'data' => [],
@@ -183,7 +183,7 @@ class UserManagerTest extends UnitTestCase {
    * @covers ::getTotalPages
    */
   public function testGetTotalPages() {
-    $this->apiClient->getTotalPages(6)->willReturn(2);
+    $this->apiClient->getTotalPages(6, Argument::any())->willReturn(2);
     $result = $this->userManager->getTotalPages(6);
     $this->assertEquals(2, $result);
   }
@@ -194,7 +194,7 @@ class UserManagerTest extends UnitTestCase {
    * @covers ::getTotalUsers
    */
   public function testGetTotalUsers() {
-    $this->apiClient->getTotalUsers()->willReturn(12);
+    $this->apiClient->getTotalUsers(Argument::any())->willReturn(12);
     $result = $this->userManager->getTotalUsers();
     $this->assertEquals(12, $result);
   }

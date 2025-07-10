@@ -4,6 +4,7 @@ namespace Drupal\reqres_users_simple\ApiClient;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Http\ClientFactory;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\reqres_users_simple\Exception\ApiException;
@@ -42,18 +43,32 @@ class ReqresApiClient implements UserApiClientInterface {
    *
    * @var string
    */
-  protected $baseUrl = 'https://reqres.in/api';
+  protected $baseUrl;
   
   /**
-   * Rate limit configuration.
+   * Rate limit settings.
    *
    * @var array
    */
-  protected $rateLimit = [
+  protected $rateLimit = [];
+  
+  /**
+   * Default rate limit values.
+   *
+   * @var array
+   */
+  protected $defaultRateLimit = [
     'limit' => 60,      // 60 requests
     'period' => 3600,   // per hour
     'remaining' => 60,  // initial value
   ];
+
+  /**
+   * The config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
 
   /**
    * Constructs a new ReqresApiClient.
@@ -64,21 +79,38 @@ class ReqresApiClient implements UserApiClientInterface {
    *   The logger factory.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   The cache backend.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory.
+   * @param array $settings
+   *   Optional settings to override defaults.
    */
   public function __construct(
     ClientFactory $http_client_factory,
     LoggerChannelFactoryInterface $logger_factory,
-    CacheBackendInterface $cache
+    CacheBackendInterface $cache,
+    ConfigFactoryInterface $config_factory,
+    array $settings = []
   ) {
     $this->httpClientFactory = $http_client_factory;
     $this->logger = $logger_factory->get('reqres_users_simple');
     $this->cache = $cache;
+    $this->configFactory = $config_factory;
+    
+    // Set base URL from settings or use default
+    $this->baseUrl = $settings['endpoint_url'] ?? 'https://reqres.in/api';
+    
+    // Initialize rate limit from settings or use defaults
+    $this->rateLimit = [
+      'limit' => $settings['rate_limit'] ?? $this->defaultRateLimit['limit'],
+      'period' => $settings['rate_period'] ?? $this->defaultRateLimit['period'],
+      'remaining' => $settings['rate_remaining'] ?? $this->defaultRateLimit['remaining'],
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getUsers(int $page = 1, int $per_page = 6): array {
+  public function getUsers(int $page = 1, int $per_page = 6, array $settings = []): array {
     $cache_id = "reqres_users_simple:users:$page:$per_page";
     
     if ($cache = $this->cache->get($cache_id)) {
@@ -87,6 +119,9 @@ class ReqresApiClient implements UserApiClientInterface {
 
     try {
       $client = $this->httpClientFactory->fromOptions();
+      $timeout = $settings['timeout'] ?? 30;
+      $connect_timeout = $settings['connect_timeout'] ?? 10;
+      
       $response = $client->request('GET', "{$this->baseUrl}/users", [
         'query' => [
           'page' => $page,
@@ -95,8 +130,8 @@ class ReqresApiClient implements UserApiClientInterface {
         'headers' => [
           'x-api-key' => 'reqres-free-v1',
         ],
-        'timeout' => 5,
-        'connect_timeout' => 3,
+        'timeout' => $timeout,
+        'connect_timeout' => $connect_timeout,
       ]);
 
       $content = $response->getBody()->getContents();
@@ -116,9 +151,10 @@ class ReqresApiClient implements UserApiClientInterface {
       // Get rate limit information
       $rate_limit = $this->getRateLimit();
       
-      // Calculate cache lifetime based on rate limit
-      // If few requests remain, increase cache lifetime
-      $cache_lifetime = $rate_limit['period'];
+      // Get cache duration from settings or use default
+      $cache_lifetime = $settings['cache_duration'] ?? 3600;
+      
+      // Adjust cache lifetime based on rate limit
       if ($rate_limit['remaining'] < $rate_limit['limit'] * 0.2) {
         // If less than 20% of requests remain, double the cache lifetime
         $cache_lifetime *= 2;
@@ -144,16 +180,16 @@ class ReqresApiClient implements UserApiClientInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTotalPages(int $per_page = 6): int {
-    $data = $this->getUsers(1, $per_page);
+  public function getTotalPages(int $per_page = 6, array $settings = []): int {
+    $data = $this->getUsers(1, $per_page, $settings);
     return !empty($data['total_pages']) ? $data['total_pages'] : 0;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getTotalUsers(): int {
-    $data = $this->getUsers(1, 1);
+  public function getTotalUsers(array $settings = []): int {
+    $data = $this->getUsers(1, 1, $settings);
     return !empty($data['total']) ? $data['total'] : 0;
   }
   

@@ -1,7 +1,0 @@
-reqres_users_simple.multi_api_demo:
-  path: '/reqres-users-simple/multi-api-demo'
-  defaults:
-    _controller: '\Drupal\reqres_users_simple\Controller\MultiApiDemoController::content'
-    _title: 'Users from Multiple APIs'
-  requirements:
-    _permission: 'access content'

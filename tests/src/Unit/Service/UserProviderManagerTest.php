@@ -97,9 +97,9 @@ class UserProviderManagerTest extends UnitTestCase {
     $users = [$user1, $user2];
     $filtered_users = [$user1];
     
-    $this->compositeProvider->getUsers(1, 6)->willReturn($users);
-    $this->compositeProvider->getTotalPages(6)->willReturn(2);
-    $this->compositeProvider->getTotalUsers()->willReturn(12);
+    $this->compositeProvider->getUsers(1, 6, Argument::any())->willReturn($users);
+    $this->compositeProvider->getTotalPages(6, Argument::any())->willReturn(2);
+    $this->compositeProvider->getTotalUsers(Argument::any())->willReturn(12);
 
     $this->eventDispatcher->dispatch(
       Argument::that(function ($event) use ($users, $filtered_users) {
@@ -135,9 +135,9 @@ class UserProviderManagerTest extends UnitTestCase {
   public function testGetFilteredUsersWithNoData() {
     $users = [];
     
-    $this->compositeProvider->getUsers(1, 6)->willReturn($users);
-    $this->compositeProvider->getTotalPages(6)->willReturn(0);
-    $this->compositeProvider->getTotalUsers()->willReturn(0);
+    $this->compositeProvider->getUsers(1, 6, Argument::any())->willReturn($users);
+    $this->compositeProvider->getTotalPages(6, Argument::any())->willReturn(0);
+    $this->compositeProvider->getTotalUsers(Argument::any())->willReturn(0);
     
     $this->eventDispatcher->dispatch(Argument::cetera())->shouldNotBeCalled();
 
@@ -160,7 +160,7 @@ class UserProviderManagerTest extends UnitTestCase {
    * @covers ::getFilteredUsers
    */
   public function testGetFilteredUsersWithError() {
-    $this->compositeProvider->getUsers(1, 6)->willThrow(new \Exception('Test error'));
+    $this->compositeProvider->getUsers(1, 6, Argument::any())->willThrow(new \Exception('Test error'));
     
     $this->logger->error('Error in getFilteredUsers: @message', Argument::any())->shouldBeCalled();
     $this->messenger->addError('Error fetching users. Please try again later.')->shouldBeCalled();
@@ -184,7 +184,7 @@ class UserProviderManagerTest extends UnitTestCase {
    * @covers ::getTotalPages
    */
   public function testGetTotalPages() {
-    $this->compositeProvider->getTotalPages(6)->willReturn(2);
+    $this->compositeProvider->getTotalPages(6, Argument::any())->willReturn(2);
     $result = $this->userProviderManager->getTotalPages(6);
     $this->assertEquals(2, $result);
   }
@@ -195,7 +195,7 @@ class UserProviderManagerTest extends UnitTestCase {
    * @covers ::getTotalUsers
    */
   public function testGetTotalUsers() {
-    $this->compositeProvider->getTotalUsers()->willReturn(12);
+    $this->compositeProvider->getTotalUsers(Argument::any())->willReturn(12);
     $result = $this->userProviderManager->getTotalUsers();
     $this->assertEquals(12, $result);
   }

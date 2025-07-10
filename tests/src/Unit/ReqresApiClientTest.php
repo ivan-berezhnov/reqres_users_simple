@@ -4,10 +4,11 @@ namespace Drupal\Tests\reqres_users_simple\Unit;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Http\ClientFactory;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
-use Drupal\reqres_users_simple\Service\ReqresApiClient;
+use Drupal\reqres_users_simple\ApiClient\ReqresApiClient;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -19,7 +20,7 @@ use Prophecy\Argument;
  * Tests the ReqresApiClient service.
  *
  * @group reqres_users_simple
- * @coversDefaultClass \Drupal\reqres_users_simple\Service\ReqresApiClient
+ * @coversDefaultClass \Drupal\reqres_users_simple\ApiClient\ReqresApiClient
  */
 class ReqresApiClientTest extends UnitTestCase {
 
@@ -59,9 +60,16 @@ class ReqresApiClientTest extends UnitTestCase {
   protected $cache;
 
   /**
+   * The config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected $configFactory;
+
+  /**
    * The API client.
    *
-   * @var \Drupal\reqres_users_simple\Service\ReqresApiClient
+   * @var \Drupal\reqres_users_simple\ApiClient\ReqresApiClient
    */
   protected $apiClient;
 
@@ -80,11 +88,13 @@ class ReqresApiClientTest extends UnitTestCase {
     $this->loggerFactory->get('reqres_users_simple')->willReturn($this->logger->reveal());
 
     $this->cache = $this->prophesize(CacheBackendInterface::class);
+    $this->configFactory = $this->prophesize(ConfigFactoryInterface::class);
 
     $this->apiClient = new ReqresApiClient(
       $this->httpClientFactory->reveal(),
       $this->loggerFactory->reveal(),
-      $this->cache->reveal()
+      $this->cache->reveal(),
+      $this->configFactory->reveal()
     );
   }
 

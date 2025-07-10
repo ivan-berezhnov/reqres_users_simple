@@ -88,8 +88,8 @@ class CompositeUserProviderTest extends UnitTestCase {
     $user3 = new User(3, 'Emma', 'Wong', 'emma.wong@reqres.in', 'https://reqres.in/img/faces/3-image.jpg');
     $user4 = new User(4, 'Eve', 'Holt', 'eve.holt@reqres.in', 'https://reqres.in/img/faces/4-image.jpg');
     
-    $this->provider1->getUsers(1, 3)->willReturn([$user1, $user2]);
-    $this->provider2->getUsers(1, 3)->willReturn([$user3, $user4]);
+    $this->provider1->getUsers(1, 3, Argument::any())->willReturn([$user1, $user2]);
+    $this->provider2->getUsers(1, 3, Argument::any())->willReturn([$user3, $user4]);
     
     // Mock logger to avoid errors
     $this->logger->error(Argument::cetera())->shouldNotBeCalled();
@@ -111,8 +111,8 @@ class CompositeUserProviderTest extends UnitTestCase {
    * @covers ::getTotalPages
    */
   public function testGetTotalPages() {
-    $this->provider1->getTotalPages(6)->willReturn(2);
-    $this->provider2->getTotalPages(6)->willReturn(3);
+    $this->provider1->getTotalPages(6, Argument::any())->willReturn(2);
+    $this->provider2->getTotalPages(6, Argument::any())->willReturn(3);
     
     $result = $this->compositeProvider->getTotalPages(6);
     $this->assertEquals(3, $result);
@@ -124,8 +124,8 @@ class CompositeUserProviderTest extends UnitTestCase {
    * @covers ::getTotalUsers
    */
   public function testGetTotalUsers() {
-    $this->provider1->getTotalUsers()->willReturn(12);
-    $this->provider2->getTotalUsers()->willReturn(18);
+    $this->provider1->getTotalUsers(Argument::any())->willReturn(12);
+    $this->provider2->getTotalUsers(Argument::any())->willReturn(18);
     
     $result = $this->compositeProvider->getTotalUsers();
     $this->assertEquals(30, $result);

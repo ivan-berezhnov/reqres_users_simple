@@ -68,7 +68,7 @@ class ReqresUserProvider implements UserProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getUsers(int $page = 1, int $per_page = 6): array {
+  public function getUsers(int $page = 1, int $per_page = 6, array $settings = []): array {
     $empty_result = [];
     
     try {
@@ -103,7 +103,7 @@ class ReqresUserProvider implements UserProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTotalPages(int $per_page = 6): int {
+  public function getTotalPages(int $per_page = 6, array $settings = []): int {
     try {
       return $this->apiClient->getTotalPages($per_page);
     }
@@ -116,7 +116,7 @@ class ReqresUserProvider implements UserProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTotalUsers(): int {
+  public function getTotalUsers(array $settings = []): int {
     try {
       return $this->apiClient->getTotalUsers();
     }

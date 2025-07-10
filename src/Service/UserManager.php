@@ -4,6 +4,7 @@ namespace Drupal\reqres_users_simple\Service;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\reqres_users_simple\ApiClient\ReqresApiClient;
 use Drupal\reqres_users_simple\Event\UserFilterEvent;
 use Drupal\reqres_users_simple\Exception\ReqresApiConnectionException;
 use Drupal\reqres_users_simple\Exception\ReqresApiDataException;
@@ -18,7 +19,7 @@ class UserManager {
   /**
    * The Reqres API client.
    *
-   * @var \Drupal\reqres_users_simple\Service\ReqresApiClient
+   * @var \Drupal\reqres_users_simple\ApiClient\ReqresApiClient
    */
   protected $apiClient;
 
@@ -46,7 +47,7 @@ class UserManager {
   /**
    * Constructs a new UserManager.
    *
-   * @param \Drupal\reqres_users_simple\Service\ReqresApiClient $api_client
+   * @param \Drupal\reqres_users_simple\ApiClient\ReqresApiClient $api_client
    *   The Reqres API client.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher.
@@ -84,7 +85,7 @@ class UserManager {
     ];
     
     try {
-      $data = $this->apiClient->getUsers($page, $per_page);
+      $data = $this->apiClient->getUsers($page, $per_page, []);
       
       if (empty($data['data'])) {
         return $empty_result;
@@ -127,7 +128,7 @@ class UserManager {
    */
   public function getTotalPages(int $per_page = 6): int {
     try {
-      return $this->apiClient->getTotalPages($per_page);
+      return $this->apiClient->getTotalPages($per_page, []);
     }
     catch (ReqresApiException $e) {
       $this->logger->error('API exception in getTotalPages: @message', ['@message' => $e->getMessage(), 'exception' => $e]);
@@ -143,7 +144,7 @@ class UserManager {
    */
   public function getTotalUsers(): int {
     try {
-      return $this->apiClient->getTotalUsers();
+      return $this->apiClient->getTotalUsers([]);
     }
     catch (ReqresApiException $e) {
       $this->logger->error('API exception in getTotalUsers: @message', ['@message' => $e->getMessage(), 'exception' => $e]);
