@@ -39,6 +39,20 @@ class UserManagerTest extends UnitTestCase {
   protected $userManager;
 
   /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected $messenger;
+
+  /**
+   * The logger factory.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected $loggerFactory;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -46,10 +60,15 @@ class UserManagerTest extends UnitTestCase {
 
     $this->apiClient = $this->prophesize(ReqresApiClient::class);
     $this->eventDispatcher = $this->prophesize(EventDispatcherInterface::class);
+    $this->messenger = $this->prophesize('Drupal\Core\Messenger\MessengerInterface');
+    $this->loggerFactory = $this->prophesize('Drupal\Core\Logger\LoggerChannelFactoryInterface');
+    $this->loggerFactory->get('reqres_users_simple')->willReturn($this->prophesize('Drupal\Core\Logger\LoggerChannelInterface')->reveal());
 
     $this->userManager = new UserManager(
       $this->apiClient->reveal(),
-      $this->eventDispatcher->reveal()
+      $this->eventDispatcher->reveal(),
+      $this->messenger->reveal(),
+      $this->loggerFactory->reveal()
     );
   }
 

@@ -1,7 +1,53 @@
 services:
-  reqres_users_simple.api_client:
-    class: Drupal\reqres_users_simple\Service\ReqresApiClient
+  # API Clients
+  reqres_users_simple.reqres_api_client:
+    class: Drupal\reqres_users_simple\ApiClient\ReqresApiClient
     arguments: ['@http_client_factory', '@logger.factory', '@cache.default']
+    
+  # reqres_users_simple.jsonplaceholder_api_client:
+  #   class: Drupal\reqres_users_simple\ApiClient\JsonPlaceholderApiClient
+  #   arguments: ['@http_client_factory', '@logger.factory', '@cache.default']
+    
+  # reqres_users_simple.randomuser_api_client:
+  #   class: Drupal\reqres_users_simple\ApiClient\RandomUserApiClient
+  #   arguments: ['@http_client_factory', '@logger.factory', '@cache.default']
+    
+  # Data Adapters
+  reqres_users_simple.reqres_user_adapter:
+    class: Drupal\reqres_users_simple\Adapter\ReqresUserDataAdapter
+    
+  # reqres_users_simple.jsonplaceholder_user_adapter:
+  #   class: Drupal\reqres_users_simple\Adapter\JsonPlaceholderUserDataAdapter
+    
+  # reqres_users_simple.randomuser_user_adapter:
+  #   class: Drupal\reqres_users_simple\Adapter\RandomUserDataAdapter
+    
+  # User Providers
+  reqres_users_simple.reqres_user_provider:
+    class: Drupal\reqres_users_simple\Provider\ReqresUserProvider
+    arguments: ['@reqres_users_simple.reqres_api_client', '@reqres_users_simple.reqres_user_adapter', '@messenger', '@logger.factory']
+    
+  # reqres_users_simple.jsonplaceholder_user_provider:
+  #   class: Drupal\reqres_users_simple\Provider\JsonPlaceholderUserProvider
+  #   arguments: ['@reqres_users_simple.jsonplaceholder_api_client', '@reqres_users_simple.jsonplaceholder_user_adapter', '@messenger', '@logger.factory']
+    
+  # reqres_users_simple.randomuser_user_provider:
+  #   class: Drupal\reqres_users_simple\Provider\RandomUserProvider
+  #   arguments: ['@reqres_users_simple.randomuser_api_client', '@reqres_users_simple.randomuser_user_adapter', '@messenger', '@logger.factory']
+    
+  reqres_users_simple.composite_user_provider:
+    class: Drupal\reqres_users_simple\Provider\CompositeUserProvider
+    arguments: ['@logger.factory']
+    calls:
+      - [addProvider, ['@reqres_users_simple.reqres_user_provider']]
+      # - [addProvider, ['@reqres_users_simple.jsonplaceholder_user_provider']]
+      # - [addProvider, ['@reqres_users_simple.randomuser_user_provider']]
+      
+  # User Manager
+  reqres_users_simple.user_provider_manager:
+    class: Drupal\reqres_users_simple\Service\UserProviderManager
+    arguments: ['@reqres_users_simple.composite_user_provider', '@event_dispatcher', '@messenger', '@logger.factory']
+    
+  # Legacy service alias for backward compatibility
   reqres_users_simple.user_manager:
-    class: Drupal\reqres_users_simple\Service\UserManager
-    arguments: ['@reqres_users_simple.api_client', '@event_dispatcher', '@messenger', '@logger.factory']
+    alias: reqres_users_simple.user_provider_manager

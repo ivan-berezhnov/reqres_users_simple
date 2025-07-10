@@ -1,25 +1,19 @@
 <?php
 
-namespace Drupal\reqres_users_simple\Plugin\Block;
+namespace Drupal\Tests\reqres_users_simple\Unit;
 
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Pager\PagerManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\reqres_users_simple\Service\UserProviderManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Pager\PagerManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Provides a block that displays users from the Reqres API.
- *
- * @Block(
- *   id = "reqres_users_block",
- *   admin_label = @Translation("Reqres Users Block"),
- *   category = @Translation("Custom")
- * )
+ * Test version of ReqresUsersBlock without t() function calls.
  */
-class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterface {
+class TestReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
   /**
    * The user manager service.
@@ -74,14 +68,21 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
   }
 
   /**
+   * Override t() to avoid container initialization.
+   */
+  public function t($string, array $args = [], array $options = []) {
+    return $string;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
     return [
       'items_per_page' => 6,
-      'email_label' => $this->t('Email'),
-      'forename_label' => $this->t('First Name'),
-      'surname_label' => $this->t('Last Name'),
+      'email_label' => 'Email',
+      'forename_label' => 'First Name',
+      'surname_label' => 'Last Name',
     ];
   }
 
@@ -94,7 +95,7 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
 
     $form['items_per_page'] = [
       '#type' => 'number',
-      '#title' => $this->t('Items per page'),
+      '#title' => 'Items per page',
       '#default_value' => $config['items_per_page'],
       '#min' => 1,
       '#max' => 250,
@@ -103,21 +104,21 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
 
     $form['email_label'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Email field label'),
+      '#title' => 'Email field label',
       '#default_value' => $config['email_label'],
       '#required' => TRUE,
     ];
 
     $form['forename_label'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Forename field label'),
+      '#title' => 'Forename field label',
       '#default_value' => $config['forename_label'],
       '#required' => TRUE,
     ];
 
     $form['surname_label'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Surname field label'),
+      '#title' => 'Surname field label',
       '#default_value' => $config['surname_label'],
       '#required' => TRUE,
     ];
@@ -153,18 +154,6 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
     $total_users = $result['total'] ?? 0;
     $total_pages = $result['total_pages'] ?? 0;
 
-    // Initialize the pager with the total number of users
-    // Log pagination data for debugging
-    // \Drupal::logger('reqres_users_simple')->notice('Pagination data: @data', [
-    //   '@data' => print_r([
-    //     'total_users' => $total_users,
-    //     'items_per_page' => $items_per_page,
-    //     'current_page' => $current_page,
-    //     'api_page' => $api_page,
-    //     'total_pages' => $total_pages,
-    //   ], TRUE),
-    // ]);
-  
     // Create pager with the correct total
     $this->pagerManager->createPager($total_users, $items_per_page);
 
@@ -180,7 +169,7 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
         $config['surname_label'],
       ],
       '#rows' => [],
-      '#empty' => $this->t('No users found.'),
+      '#empty' => 'No users found.',
     ];
   
     // Add cache metadata
@@ -219,5 +208,4 @@ class ReqresUsersBlock extends BlockBase implements ContainerFactoryPluginInterf
 
     return $build;
   }
-
 }

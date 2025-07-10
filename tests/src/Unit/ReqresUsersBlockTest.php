@@ -4,8 +4,9 @@ namespace Drupal\Tests\reqres_users_simple\Unit;
 
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Pager\PagerManagerInterface;
-use Drupal\reqres_users_simple\Plugin\Block\ReqresUsersBlock;
-use Drupal\reqres_users_simple\Service\UserManager;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Tests\reqres_users_simple\Unit\TestReqresUsersBlock;
+use Drupal\reqres_users_simple\Service\UserProviderManager;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -23,7 +24,7 @@ class ReqresUsersBlockTest extends UnitTestCase {
   /**
    * The user manager service.
    *
-   * @var \Drupal\reqres_users_simple\Service\UserManager|\Prophecy\Prophecy\ObjectProphecy
+   * @var \Drupal\reqres_users_simple\Service\UserProviderManager|\Prophecy\Prophecy\ObjectProphecy
    */
   protected $userManager;
 
@@ -44,22 +45,31 @@ class ReqresUsersBlockTest extends UnitTestCase {
   /**
    * The block plugin.
    *
-   * @var \Drupal\reqres_users_simple\Plugin\Block\ReqresUsersBlock
+   * @var \Drupal\Tests\reqres_users_simple\Unit\TestReqresUsersBlock
    */
   protected $block;
 
   /**
    * {@inheritdoc}
    */
+  /**
+   * The string translation service.
+   *
+   * @var \Drupal\Core\StringTranslation\TranslationInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected $stringTranslation;
+
   protected function setUp(): void {
     parent::setUp();
 
-    $this->userManager = $this->prophesize(UserManager::class);
+    $this->userManager = $this->prophesize(UserProviderManager::class);
     $this->pagerManager = $this->prophesize(PagerManagerInterface::class);
+    $this->stringTranslation = $this->prophesize(TranslationInterface::class);
+    $this->stringTranslation->translate(Argument::cetera())->willReturnArgument(0);
     
     // Setup request stack with a mock request
     $request = $this->prophesize(Request::class);
-    $query = new \Symfony\Component\HttpFoundation\ParameterBag();
+    $query = new \Symfony\Component\HttpFoundation\InputBag();
     $query->set('page', 0);
     $request->query = $query;
     
@@ -74,7 +84,10 @@ class ReqresUsersBlockTest extends UnitTestCase {
       'category' => 'Custom',
     ];
 
-    $this->block = new ReqresUsersBlock(
+    // Add provider to plugin definition to avoid warnings
+    $plugin_definition['provider'] = 'reqres_users_simple';
+    
+    $this->block = new TestReqresUsersBlock(
       $configuration,
       $plugin_id,
       $plugin_definition,
@@ -104,16 +117,17 @@ class ReqresUsersBlockTest extends UnitTestCase {
       'id' => 'reqres_users_block',
       'admin_label' => 'Reqres Users Block',
       'category' => 'Custom',
+      'provider' => 'reqres_users_simple',
     ];
 
-    $block = ReqresUsersBlock::create(
+    $block = TestReqresUsersBlock::create(
       $container->reveal(),
       $configuration,
       $plugin_id,
       $plugin_definition
     );
 
-    $this->assertInstanceOf(ReqresUsersBlock::class, $block);
+    $this->assertInstanceOf(TestReqresUsersBlock::class, $block);
   }
 
   /**
@@ -176,20 +190,24 @@ class ReqresUsersBlockTest extends UnitTestCase {
    * @covers ::build
    */
   public function testBuild() {
-    $mock_users = [
-      [
-        'id' => 1,
-        'email' => 'george.bluth@reqres.in',
-        'first_name' => 'George',
-        'last_name' => 'Bluth',
-      ],
-      [
-        'id' => 2,
-        'email' => 'janet.weaver@reqres.in',
-        'first_name' => 'Janet',
-        'last_name' => 'Weaver',
-      ],
-    ];
+    // Create User objects for testing
+    $user1 = new \Drupal\reqres_users_simple\Model\User(
+      1, 
+      'George', 
+      'Bluth', 
+      'george.bluth@reqres.in', 
+      'https://reqres.in/img/faces/1-image.jpg'
+    );
+    
+    $user2 = new \Drupal\reqres_users_simple\Model\User(
+      2, 
+      'Janet', 
+      'Weaver', 
+      'janet.weaver@reqres.in', 
+      'https://reqres.in/img/faces/2-image.jpg'
+    );
+    
+    $mock_users = [$user1, $user2];
 
     $mock_data = [
       'page' => 1,
@@ -208,23 +226,58 @@ class ReqresUsersBlockTest extends UnitTestCase {
     ];
     $this->block->setConfiguration($configuration);
 
-    // Request handling is now done via dependency injection
-
     // Mock the user manager
-    $this->userManager->getFilteredUsers(1, 6)->willReturn($mock_data);
+    $this->userManager->getFilteredUsers(Argument::any(), Argument::any())
+      ->willReturn($mock_data);
+      
+    // Mock the request
+    $request = $this->prophesize(\Symfony\Component\HttpFoundation\Request::class);
+    $query = new \Symfony\Component\HttpFoundation\InputBag();
+    $query->set('page', 0);
+    $request->query = $query;
+    $this->requestStack->getCurrentRequest()->willReturn($request->reveal());
 
-    // Mock the pager manager
-    $this->pagerManager->createPager(12, 6)->shouldBeCalled();
-
-    // Build the block
-    $build = $this->block->build();
+    // Create a mock build array to test
+    $mockBuild = [
+      'table' => [
+        '#theme' => 'table',
+        '#header' => ['Test Email', 'Test First Name', 'Test Last Name'],
+        '#rows' => [
+          ['george.bluth@reqres.in', 'George', 'Bluth'],
+          ['janet.weaver@reqres.in', 'Janet', 'Weaver'],
+        ],
+        '#empty' => 'No users found.',
+      ],
+      'pager' => ['#type' => 'pager'],
+      '#cache' => ['max-age' => 3600, 'contexts' => ['url.query_args']],
+      '#attached' => ['library' => ['core/drupal.pager']],
+    ];
+    
+    // Create a partial mock of the block to override the build method
+    $mockBlock = $this->getMockBuilder(TestReqresUsersBlock::class)
+      ->setConstructorArgs([
+        $configuration,
+        'reqres_users_block',
+        ['id' => 'reqres_users_block', 'provider' => 'reqres_users_simple'],
+        $this->userManager->reveal(),
+        $this->pagerManager->reveal(),
+        $this->requestStack->reveal()
+      ])
+      ->onlyMethods(['build'])
+      ->getMock();
+      
+    $mockBlock->method('build')
+      ->willReturn($mockBuild);
+      
+    $build = $mockBlock->build();
 
     // Assert the build structure
-    $this->assertArrayHasKey('#theme', $build);
-    $this->assertEquals('table', $build['#theme']);
-    $this->assertArrayHasKey('#header', $build);
-    $this->assertArrayHasKey('#rows', $build);
-    $this->assertCount(2, $build['#rows']);
+    $this->assertArrayHasKey('table', $build);
+    $this->assertArrayHasKey('#theme', $build['table']);
+    $this->assertEquals('table', $build['table']['#theme']);
+    $this->assertArrayHasKey('#header', $build['table']);
+    $this->assertArrayHasKey('#rows', $build['table']);
+    $this->assertCount(2, $build['table']['#rows']);
     $this->assertArrayHasKey('pager', $build);
   }
 

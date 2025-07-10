@@ -2,10 +2,11 @@
 
 namespace Drupal\reqres_users_simple\Event;
 
+use Drupal\reqres_users_simple\Model\UserInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
- * Event for filtering users from the Reqres API.
+ * Event for filtering users from multiple API sources.
  */
 class UserFilterEvent extends Event {
 
@@ -17,14 +18,14 @@ class UserFilterEvent extends Event {
   /**
    * The users to filter.
    *
-   * @var array
+   * @var \Drupal\reqres_users_simple\Model\UserInterface[]
    */
   protected $users;
 
   /**
    * Constructs a new UserFilterEvent.
    *
-   * @param array $users
+   * @param \Drupal\reqres_users_simple\Model\UserInterface[] $users
    *   The users to filter.
    */
   public function __construct(array $users) {
@@ -34,7 +35,7 @@ class UserFilterEvent extends Event {
   /**
    * Gets the users.
    *
-   * @return array
+   * @return \Drupal\reqres_users_simple\Model\UserInterface[]
    *   The users.
    */
   public function getUsers(): array {
@@ -44,7 +45,7 @@ class UserFilterEvent extends Event {
   /**
    * Sets the users.
    *
-   * @param array $users
+   * @param \Drupal\reqres_users_simple\Model\UserInterface[] $users
    *   The users.
    */
   public function setUsers(array $users): void {

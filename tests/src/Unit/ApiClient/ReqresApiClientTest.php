@@ -1,13 +1,16 @@
 <?php
 
-namespace Drupal\Tests\reqres_users_simple\Unit;
+namespace Drupal\Tests\reqres_users_simple\Unit\ApiClient;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Http\ClientFactory;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
-use Drupal\reqres_users_simple\Service\ReqresApiClient;
+use Drupal\reqres_users_simple\ApiClient\ReqresApiClient;
+use Drupal\reqres_users_simple\Exception\ApiException;
+use Drupal\reqres_users_simple\Exception\ReqresApiConnectionException;
+use Drupal\reqres_users_simple\Exception\ReqresApiDataException;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -19,7 +22,7 @@ use Prophecy\Argument;
  * Tests the ReqresApiClient service.
  *
  * @group reqres_users_simple
- * @coversDefaultClass \Drupal\reqres_users_simple\Service\ReqresApiClient
+ * @coversDefaultClass \Drupal\reqres_users_simple\ApiClient\ReqresApiClient
  */
 class ReqresApiClientTest extends UnitTestCase {
 
@@ -61,7 +64,7 @@ class ReqresApiClientTest extends UnitTestCase {
   /**
    * The API client.
    *
-   * @var \Drupal\reqres_users_simple\Service\ReqresApiClient
+   * @var \Drupal\reqres_users_simple\ApiClient\ReqresApiClient
    */
   protected $apiClient;
 
@@ -166,8 +169,39 @@ class ReqresApiClientTest extends UnitTestCase {
     $this->httpClient->request('GET', 'https://reqres.in/api/users', Argument::any())
       ->willThrow($exception);
 
-    $this->expectException('\Drupal\reqres_users_simple\Exception\ReqresApiConnectionException');
-    $this->expectExceptionMessage('Connection error when fetching users from API: Error');
+    $this->expectException(ReqresApiConnectionException::class);
+    $this->apiClient->getUsers(1, 6);
+  }
+
+  /**
+   * Tests the getUsers method with invalid JSON.
+   *
+   * @covers ::getUsers
+   */
+  public function testGetUsersInvalidJson() {
+    $response = new Response(200, [], '{invalid json}');
+    $this->httpClient->request('GET', 'https://reqres.in/api/users', Argument::any())
+      ->willReturn($response);
+
+    $this->cache->get('reqres_users_simple:users:1:6')->willReturn(FALSE);
+
+    $this->expectException(ReqresApiDataException::class);
+    $this->apiClient->getUsers(1, 6);
+  }
+
+  /**
+   * Tests the getUsers method with invalid data structure.
+   *
+   * @covers ::getUsers
+   */
+  public function testGetUsersInvalidStructure() {
+    $response = new Response(200, [], Json::encode(['invalid' => 'structure']));
+    $this->httpClient->request('GET', 'https://reqres.in/api/users', Argument::any())
+      ->willReturn($response);
+
+    $this->cache->get('reqres_users_simple:users:1:6')->willReturn(FALSE);
+
+    $this->expectException(ReqresApiDataException::class);
     $this->apiClient->getUsers(1, 6);
   }
 
