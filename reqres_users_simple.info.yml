@@ -1,0 +1,7 @@
+name: ReqRes Users Simple
+type: module
+description: 'Provides a block to display users from the reqres.in API.'
+core_version_requirement: ^9 || ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:block

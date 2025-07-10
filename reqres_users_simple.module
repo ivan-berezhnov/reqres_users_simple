@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * Contains reqres_users_simple.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function reqres_users_simple_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.reqres_users_simple':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides a block to display users from the reqres.in API.') . '</p>';
+      return $output;
+  }
+}

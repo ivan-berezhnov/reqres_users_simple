@@ -1,0 +1,7 @@
+name: ReqRes Users Filter Example
+type: module
+description: 'Example module that demonstrates how to filter users from the reqres_users_simple module.'
+core_version_requirement: ^9 || ^10 || ^11
+package: Custom
+dependencies:
+  - reqres_users_simple:reqres_users_simple

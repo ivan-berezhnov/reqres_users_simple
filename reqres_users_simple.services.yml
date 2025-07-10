@@ -1,0 +1,7 @@
+services:
+  reqres_users_simple.api_client:
+    class: Drupal\reqres_users_simple\Service\ReqresApiClient
+    arguments: ['@http_client_factory', '@logger.factory', '@cache.default']
+  reqres_users_simple.user_manager:
+    class: Drupal\reqres_users_simple\Service\UserManager
+    arguments: ['@reqres_users_simple.api_client', '@event_dispatcher', '@messenger', '@logger.factory']
